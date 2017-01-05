@@ -94,7 +94,7 @@ void FaceCv::Init()
 			//Head Compute
 			Average_Point(draw_points_);
 			nose_tip_ = ((draw_points_[41] + draw_points_[42]) / 2 +draw_points_[38] + draw_points_[45]) / 3;
-			HeadCompute(draw_points_, nose_tip_, nose_end_point2D);			
+			//HeadCompute(draw_points_, nose_tip_, nose_end_point2D);			
 			//Draw
 			Draw_point(frame, nose_end_point2D);
 			count++;
@@ -190,5 +190,5 @@ void FaceCv::Draw_point(cv::Mat &frame,const std::vector<cv::Point2d> nose_end_p
 		//if(i==4||i==12||i==38 || i == 41 || i == 42 || i == 45 || i == 48 || i == 54 || i == 77)
 		circle(frame, draw_points_[i], 1, cvScalar(0, 255, 0), -1);
 	}
-	cv::line(frame, nose_tip_, nose_end_point2D[0], cv::Scalar(255, 0, 0), 2);
+	//cv::line(frame, nose_tip_, nose_end_point2D[0], cv::Scalar(255, 0, 0), 2);
 }

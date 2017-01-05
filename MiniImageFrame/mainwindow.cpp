@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 	setCentralWidget(imagewidget_);
 
 	facecv_ = new FaceCv();
-	
+	openface_ = new OpenFace();
 
 	CreateActions();
 	CreateMenus();
@@ -90,6 +90,10 @@ void MainWindow::CreateActions()
 	action_vision_ = new QAction(tr("Vision"), this);
 	action_vision_->setStatusTip(tr("Gaze Detection"));
 	connect(action_vision_, SIGNAL(triggered()), facecv_, SLOT(Init()));
+
+	action_openface_ = new QAction(tr("OpenFace"), this);
+	action_openface_->setStatusTip(tr("Test Gaze"));
+	connect(action_openface_, SIGNAL(triggered()), this, SLOT(OpenFaceData()));
 }
 
 void MainWindow::CreateMenus()
@@ -118,6 +122,10 @@ void MainWindow::CreateMenus()
 	menu_vision_ = menuBar()->addMenu(tr("&Vision"));
 	menu_vision_->setStatusTip(tr("Face Stream"));
 	menu_vision_->addAction(action_vision_);
+
+	menu_vision_ = menuBar()->addMenu(tr("&OpenFace"));
+	menu_vision_->setStatusTip(tr("OpenFace"));
+	menu_vision_->addAction(action_openface_);
 }
 
 void MainWindow::CreateToolBars()
@@ -143,6 +151,7 @@ void MainWindow::CreateToolBars()
 	//Vision
 	toolbar_file_->addSeparator();
 	toolbar_file_->addAction(action_vision_);
+	toolbar_file_->addAction(action_openface_);
 }
 
 void MainWindow::CreateStatusBar()

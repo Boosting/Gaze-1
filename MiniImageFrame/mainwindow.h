@@ -5,6 +5,7 @@
 #include "ui_mainwindow.h"
 
 #include"FaceCv.h"
+#include"OpenFace.h"
 
 QT_BEGIN_NAMESPACE
 	class QAction;
@@ -23,12 +24,16 @@ class MainWindow : public QMainWindow
 public:
 	MainWindow(QWidget *parent = 0);
 	~MainWindow();
+	void SetArgc(int argc, char *argv[]) {
+		argc_ = argc;
+		argv_ = argv;
+	};
 
 protected:
 	void closeEvent(QCloseEvent *e);
 	void paintEvent(QPaintEvent *paintevent);
 
-private slots:
+
 	
 private:
 	void CreateActions();
@@ -36,6 +41,11 @@ private:
 	void CreateToolBars();
 	void CreateStatusBar();
 
+private slots:
+	void OpenFaceData() {
+		openface_->Init(argc_, argv_);
+	};
+	
 private:
 	Ui::MainWindowClass ui;
 
@@ -74,6 +84,14 @@ private:
 	//----------vision--------------
 	FaceCv    *facecv_;
 	QAction     *action_vision_;
+
+
+	OpenFace  *openface_;
+	QAction   *action_openface_;
+
+	//Argc
+	int argc_;
+	char** argv_;
 };
 
 #endif // MAINWINDOW_H

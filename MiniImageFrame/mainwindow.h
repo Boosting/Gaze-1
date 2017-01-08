@@ -29,6 +29,11 @@ public:
 		argv_ = argv;
 	};
 
+	void Test() {
+		openface_->Debug();
+		//openface_->img_track(argc_, argv_);
+	};
+
 protected:
 	void closeEvent(QCloseEvent *e);
 	void paintEvent(QPaintEvent *paintevent);
@@ -40,6 +45,9 @@ private:
 	void CreateMenus();
 	void CreateToolBars();
 	void CreateStatusBar();
+
+
+
 
 private slots:
 	void OpenFaceData() {

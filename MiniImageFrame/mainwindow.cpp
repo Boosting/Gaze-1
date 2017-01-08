@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
 	CreateMenus();
 	CreateToolBars();
 	CreateStatusBar();
+	update();
 }
 
 MainWindow::~MainWindow()
@@ -36,7 +37,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
 void MainWindow::paintEvent(QPaintEvent* paintevent)
 {
-	
+
 }
 
 void MainWindow::CreateActions()
@@ -158,6 +159,5 @@ void MainWindow::CreateStatusBar()
 {
 	statusBar()->showMessage(tr("Ready"));
 }
-
 
 

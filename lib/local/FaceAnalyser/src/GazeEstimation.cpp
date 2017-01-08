@@ -2,7 +2,7 @@
 // Copyright (C) 2016, Carnegie Mellon University and University of Cambridge,
 // all rights reserved.
 //
-// THIS SOFTWARE IS PROVIDED “AS IS” FOR ACADEMIC USE ONLY AND ANY EXPRESS
+// THIS SOFTWARE IS PROVIDED “AS IS?FOR ACADEMIC USE ONLY AND ANY EXPRESS
 // OR IMPLIED WARRANTIES WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
 // THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 // PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS
@@ -15,8 +15,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 // Notwithstanding the license granted herein, Licensee acknowledges that certain components
-// of the Software may be covered by so-called “open source” software licenses (“Open Source
-// Components”), which means any software licenses approved as open source licenses by the
+// of the Software may be covered by so-called “open source?software licenses (“Open Source
+// Components?, which means any software licenses approved as open source licenses by the
 // Open Source Initiative or any substantially similar licenses, including without limitation any
 // license that, as a condition of distribution of the software licensed under such license,
 // requires that the distributor make the software available in source code format. Licensor shall
@@ -202,3 +202,57 @@ void FaceAnalysis::DrawGaze(cv::Mat img, const LandmarkDetector::CLNF& clnf_mode
 	cv::line(img, cv::Point(cvRound(proj_points.at<double>(0, 0) * (double)gaze_draw_multiplier), cvRound(proj_points.at<double>(0, 1) * (double)gaze_draw_multiplier)),
 		cv::Point(cvRound(proj_points.at<double>(1, 0) * (double)gaze_draw_multiplier), cvRound(proj_points.at<double>(1, 1) * (double)gaze_draw_multiplier)), cv::Scalar(110, 220, 0), 2, CV_AA, gaze_draw_shiftbits);
 }
+
+
+void FaceAnalysis::EstimateGaze(cv::Point3f& eyeball_center, const LandmarkDetector::CLNF& clnf_model, cv::Point3f& gaze_absolute, float fx, float fy, float cx, float cy, bool left_eye)
+{
+	cv::Vec6d headPose = LandmarkDetector::GetPoseCamera(clnf_model, fx, fy, cx, cy);
+	cv::Vec3d eulerAngles(headPose(3), headPose(4), headPose(5));
+	cv::Matx33d rotMat = LandmarkDetector::Euler2RotationMatrix(eulerAngles);
+
+	int part = -1;
+	for (size_t i = 0; i < clnf_model.hierarchical_models.size(); ++i)
+	{
+		if (left_eye && clnf_model.hierarchical_model_names[i].compare("left_eye_28") == 0)
+		{
+			part = i;
+		}
+		if (!left_eye && clnf_model.hierarchical_model_names[i].compare("right_eye_28") == 0)
+		{
+			part = i;
+		}
+	}
+
+	if (part == -1)
+	{
+		std::cout << "Couldn't find the eye model, something wrong" << std::endl;
+	}
+
+	cv::Mat eyeLdmks3d = clnf_model.hierarchical_models[part].GetShape(fx, fy, cx, cy);
+
+	cv::Point3f pupil = GetPupilPosition(eyeLdmks3d);
+	cv::Point3f rayDir = pupil / norm(pupil);
+
+	cv::Mat faceLdmks3d = clnf_model.GetShape(fx, fy, cx, cy);
+	faceLdmks3d = faceLdmks3d.t();
+	cv::Mat offset = (cv::Mat_<double>(3, 1) << 0, -3.50, 0);
+	int eyeIdx = 1;
+	if (left_eye)
+	{
+		eyeIdx = 0;
+	}
+
+	cv::Mat eyeballCentreMat = (faceLdmks3d.row(36 + eyeIdx * 6) + faceLdmks3d.row(39 + eyeIdx * 6)) / 2.0f + (cv::Mat(rotMat)*offset).t();
+
+	cv::Point3f eyeballCentre = cv::Point3f(eyeballCentreMat);
+	eyeball_center = eyeballCentre;
+
+	cv::Point3f gazeVecAxis = RaySphereIntersect(cv::Point3f(0, 0, 0), rayDir, eyeballCentre, 12) - eyeballCentre;
+	gaze_absolute = gazeVecAxis / norm(gazeVecAxis);
+
+}
+
+
+
+
+

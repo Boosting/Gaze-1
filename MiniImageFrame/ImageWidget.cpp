@@ -50,6 +50,22 @@ void ImageWidget::paintEvent(QPaintEvent *paintevent)
 		}
 	}
 	
+
+	//Eye Tracking
+	QPainter qpainter(this);
+	QLinearGradient gradient(QPointF(50, -20), QPointF(80, 20));
+	QBrush circleBrush = QBrush(gradient);
+	QPen circlePen = QPen(Qt::black);
+
+	qpainter.setBrush(circleBrush);
+	qpainter.setPen(circlePen);
+
+	qreal factor = 5;
+	qreal radius = 0 + 120.0 * factor;
+	qreal circleRadius = 1 + factor * 20;
+	qpainter.drawEllipse(QRectF(radius, -circleRadius,
+		circleRadius * 2, circleRadius * 2));
+
 	painter.end();
 }
 

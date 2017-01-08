@@ -7,5 +7,6 @@ int main(int argc, char *argv[])
 	MainWindow w;
 	w.SetArgc(argc, argv);
 	w.show();
+	w.Test();
 	return a.exec();
 }

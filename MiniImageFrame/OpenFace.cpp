@@ -219,9 +219,6 @@ int OpenFace::main(int argc, char **argv)
 		cv::Mat captured_image;
 		video_capture >> captured_image;
 
-		cv::Mat image;
-		image = cv::imread("F:\\Work\\Git\\Gaze\\img\\me.jpg", 0);
-		captured_image = image;
 		// If optical centers are not defined just use center of image
 		if (cx_undefined)
 		{
@@ -258,6 +255,12 @@ int OpenFace::main(int argc, char **argv)
 		int64 t_initial = cv::getTickCount();
 
 		INFO_STREAM("Starting tracking");
+
+		//Draw dot on the screen
+		cv::namedWindow("Estimate", CV_WINDOW_NORMAL);		
+		cv::Mat img(cv::Mat(1080, 1920, CV_8U));
+		img = cv::Scalar(50);    // or the desired uint8_t value from 0-255
+
 		while (!captured_image.empty())
 		{
 
@@ -319,10 +322,14 @@ int OpenFace::main(int argc, char **argv)
 
 			visualise_tracking(captured_image, depth_image, clnf_model, det_parameters, gazeDirection0, gazeDirection1, frame_count, fx, fy, cx, cy);
 			
+		
 			cv::Point2d dot;
-			//if (displaywidget_->DotEstimate(gazeDirection0, gazeDirection1, left_eyeball_center, right_eyeball_center, dot))
-			//	draw_point(dot);
-
+			if (displaywidget_->DotEstimate(gazeDirection0, gazeDirection1, left_eyeball_center, right_eyeball_center, dot))
+			{
+				circle(img, dot, 32.0, cv::Scalar(0, 0, 255), -1, 8);
+				cv::imshow("Estimate", img);
+				img = cv::Scalar(50);
+			}
 			// output the tracked video
 			if (!output_video_files.empty())
 			{
@@ -467,14 +474,15 @@ int OpenFace::img_track(int argc, char **argv)
 	
 	cv::Point2d dot;
 	if (displaywidget_->DotEstimate(gazeDirection0, gazeDirection1, left_eyeball_center, right_eyeball_center, dot))
+	{
 		draw_point(dot);
-	
+	}
 	return 0;
 }
 
 void OpenFace::Debug()
 {
-	//draw_point(cv::Point( 1920 / 2, 1200 / 2));
+	//draw_point(cv::Point( 1920 / 2, 1080 / 2));
 	// 31*17cm 10cm
 
 }
@@ -482,11 +490,7 @@ void OpenFace::Debug()
 void OpenFace::draw_point(cv::Point center)
 {
 	cv::namedWindow("estimate",CV_WINDOW_NORMAL);
-	//cv::setWindowProperty("estimate", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
-	IplImage* imgScribble = cvCreateImage(cvSize(1920, 1200), 8, 3);
-
-	cv::Mat img = cv::cvarrToMat(imgScribble);
-	//cv::Point center = cv::Point(1920 / 2, 1200 / 2);
+	cv::Mat img = cv::cvarrToMat(cvCreateImage(cvSize(1920, 1080), 8, 3));
 	circle(img, center, 32.0, cv::Scalar(0, 0, 255), -1, 8);
 	cv::imshow("estimate", img);
 

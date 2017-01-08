@@ -1,6 +1,6 @@
 #pragma once
 #include <GTEnginePCH.h>
-
+#include <iostream>
 #include <opencv2/imgproc.hpp>
 
 //This Class mainly solves the problem that given gaze angle what the dot will
@@ -27,7 +27,11 @@ private:
 	double display_width;
 	double display_height;
 	double camera2displapy;
+	double resolution_width;
+	double resolution_height;
 	gte::Triangle<3, float> display0, display1;
+	cv::Vec3f u, v;
+	cv::Point3f image_orgin;
 	
 };
 

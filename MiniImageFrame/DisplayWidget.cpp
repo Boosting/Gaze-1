@@ -15,6 +15,14 @@ DisplayWidget::DisplayWidget()
 	display1.v[0][0] = -display_width / 2.0; display1.v[0][1] = camera2displapy + display_height; display1.v[0][2] = 0.0;
 	display1.v[1][0] = -display_width / 2.0; display1.v[1][1] = camera2displapy; display1.v[1][2] = 0.0;
 	display1.v[2][0] = display_width / 2.0; display1.v[2][1] = camera2displapy + display_height; display1.v[2][2] = 0.0;
+	image_orgin = cv::Point3f(display0.v[0][0], display0.v[0][1], display0.v[0][2]);
+	u = cv::Vec3f(display0.v[1][0], display0.v[1][1], display0.v[1][2]) - cv::Vec3f(image_orgin);
+	u = cv::normalize(u);
+	v = cv::Vec3f(display0.v[2][0], display0.v[2][1], display0.v[2][2]) - cv::Vec3f(image_orgin);
+	v = cv::normalize(v);
+
+	resolution_width = 1920;
+	resolution_height = 1080;
 }
 
 
@@ -61,14 +69,15 @@ bool DisplayWidget::Display(const cv::Point3f left_dot, const cv::Point3f right_
 {
 	cv::Point2d tmp;
 	cv::Point3f mid = (left_dot + right_dot) / 2.0;
-	cv::Point3f image_orgin = cv::Point3f(display0.v[0][0], display0.v[0][1], display0.v[0][2]);
-	cv::Vec3f u= cv::Vec3f(display0.v[1][0], display0.v[1][1], display0.v[1][2])-cv::Vec3f(image_orgin);
-	u = cv::normalize(u);
-	cv::Vec3f v = cv::Vec3f(display0.v[2][0], display0.v[2][1], display0.v[2][2])- cv::Vec3f(image_orgin);
-	v = cv::normalize(v);
-	tmp = cv::Point2f(int(u.dot(mid - image_orgin)), int(v.dot(mid - image_orgin)));
-	if (tmp.x > 0 && tmp.x < display_width&&tmp.y>0 && tmp.y < display_height)
+
+
+	tmp = cv::Point2f(int(u.dot(mid - image_orgin)*resolution_width/display_width), int(v.dot(mid - image_orgin)*resolution_height/display_height));
+	//tmp.y *= 4;
+	//tmp.x = (tmp.x - resolution_width / 2.0) * 8 + resolution_width / 2.0;
+	if (tmp.x > 0 && tmp.x < resolution_width&&tmp.y>0 && tmp.y < resolution_width)
 	{
+		std::cout << tmp.x << " " << tmp.y << std::endl;
+
 		dot = tmp;
 		return true;
 	}

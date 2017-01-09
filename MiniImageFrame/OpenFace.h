@@ -17,6 +17,15 @@
 
 //Display
 #include"DisplayWidget.h"
+
+//RealSence
+#include <windows.h>
+#include "RealSense/SenseManager.h"
+#include "RealSense/SampleReader.h"
+#include "util_cmdline.h"
+#include "util_render.h"
+#include <conio.h>
+
 using namespace std;
 
 class OpenFace 
@@ -40,7 +49,10 @@ private:
 	int main(int argc, char **argv);
 	void draw_point(cv::Point center);
 
+	void IntelRealSence();
 
+	void InitOpenface(int argc, char **argv);
+	cv::Mat PXCImage2CVMat(PXCImage *pxcImage, PXCImage::PixelFormat format);
 
 private:
 	// Some globals for tracking timing information for visualisation
@@ -48,4 +60,5 @@ private:
 	int64 t0 = 0;
 
 	DisplayWidget* displaywidget_;
+
 };

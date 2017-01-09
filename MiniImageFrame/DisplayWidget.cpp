@@ -4,8 +4,8 @@
 
 DisplayWidget::DisplayWidget()
 {
-	display_height = 170;
-	display_width = 310;
+	display_height = 389;
+	display_width = 559;
 	camera2displapy = 10;
 
 	display0.v[0][0] = display_width / 2.0; display0.v[0][1] = camera2displapy; display0.v[0][2] = 0.0;

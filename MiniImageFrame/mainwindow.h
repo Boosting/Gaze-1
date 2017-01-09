@@ -31,7 +31,7 @@ public:
 
 	void Test() {
 		openface_->Debug();
-		//openface_->img_track(argc_, argv_);
+		openface_->img_track(argc_, argv_);
 	};
 
 protected:

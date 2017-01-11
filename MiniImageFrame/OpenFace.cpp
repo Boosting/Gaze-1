@@ -63,7 +63,7 @@ void OpenFace::visualise_tracking(cv::Mat& captured_image, cv::Mat_<float>& dept
 	// Only draw if the reliability is reasonable, the value is slightly ad-hoc
 	if (detection_certainty < visualisation_boundary)
 	{
-		//LandmarkDetector::Draw(captured_image, face_model);
+		LandmarkDetector::Draw(captured_image, face_model);
 
 		double vis_certainty = detection_certainty;
 		if (vis_certainty > 1)
@@ -79,7 +79,7 @@ void OpenFace::visualise_tracking(cv::Mat& captured_image, cv::Mat_<float>& dept
 		cv::Vec6d pose_estimate_to_draw = LandmarkDetector::GetCorrectedPoseWorld(face_model, fx, fy, cx, cy);
 
 		// Draw it in reddish if uncertain, blueish if certain
-		LandmarkDetector::DrawBox(captured_image, pose_estimate_to_draw, cv::Scalar((1 - vis_certainty)*255.0, 0, vis_certainty * 255), thickness, fx, fy, cx, cy);
+		//LandmarkDetector::DrawBox(captured_image, pose_estimate_to_draw, cv::Scalar((1 - vis_certainty)*255.0, 0, vis_certainty * 255), thickness, fx, fy, cx, cy);
 
 		if (det_parameters.track_gaze && detection_success && face_model.eye_model)
 		{
@@ -148,7 +148,7 @@ int OpenFace::main(int argc, char **argv)
 	//Create the OpenCV windows and images
 
 	//cv::namedWindow("Color", cv::WINDOW_NORMAL);
-	cv::namedWindow("Depth", cv::WINDOW_NORMAL);
+	//cv::namedWindow("Depth", cv::WINDOW_NORMAL);
 
 	cv::Mat frameColor = cv::Mat::zeros(frameSize, CV_8UC3);
 	cv::Mat frameDepth = cv::Mat::zeros(depthSize, CV_8UC1);
@@ -184,7 +184,7 @@ int OpenFace::main(int argc, char **argv)
 		//Display the images
 
 		//cv::imshow("Color", frameColor);
-		cv::imshow("Depth", frameDisplay);
+		//cv::imshow("Depth", frameDisplay);
 
 		//Check for user input
 		int key = cv::waitKey(1);
@@ -230,15 +230,15 @@ int OpenFace::main(int argc, char **argv)
 			FaceAnalysis::EstimateGaze(right_eyeball_center, clnf_model, gazeDirection1, fx, fy, cx, cy, false); //Right Eye
 		}
 		frame_count++;
-		//visualise_tracking(frameColor, frameDisplay, clnf_model, det_parameters, gazeDirection0, gazeDirection1, frame_count, fx, fy, cx, cy);
+		visualise_tracking(frameColor, frameDisplay, clnf_model, det_parameters, gazeDirection0, gazeDirection1, frame_count, fx, fy, cx, cy);
 
-		//cv::Point2d dot;
-		//if (displaywidget_->DotEstimate(gazeDirection0, gazeDirection1, left_eyeball_center, right_eyeball_center, dot))
-		//{
-		//	circle(img, dot, 32.0, cv::Scalar(0, 0, 255), -1, 8);
-		//	cv::imshow("Estimate", img);
-		//	img = cv::Scalar(50);
-		//}
+		cv::Point2d dot;
+		if (displaywidget_->DotEstimate(gazeDirection0, gazeDirection1, left_eyeball_center, right_eyeball_center, dot))
+		{
+			circle(img, dot, 32.0, cv::Scalar(0, 0, 255), -1, 8);
+			cv::imshow("Estimate", img);
+			img = cv::Scalar(50);
+		}
 
 	}
 
@@ -319,6 +319,7 @@ int OpenFace::img_track(int argc, char **argv)
 
 void OpenFace::Debug()
 {
+	//draw_point(cv::Point2d(960, 540));
 
 	//vector<string> arguments = get_arguments(argc, argv);
 	//vector<string> files, depth_directories, output_video_files, out_dummy;
@@ -548,4 +549,97 @@ cv::Mat OpenFace::PXCImage2CVMat(PXCImage *pxcImage, PXCImage::PixelFormat forma
 
 	pxcImage->ReleaseAccess(&data);
 	return ocvImage;
+}
+
+void OpenFace::Calibration(int argc, char **argv,int type)
+{
+
+	vector<string> arguments = get_arguments(argc, argv);
+	vector<string> files, depth_directories, output_video_files, out_dummy;
+	LandmarkDetector::FaceModelParameters det_parameters(arguments);
+	bool u;
+	string output_codec;
+	LandmarkDetector::get_video_input_output_params(files, depth_directories, out_dummy, output_video_files, u, output_codec, arguments);
+	LandmarkDetector::CLNF clnf_model(det_parameters.model_location);
+	float fx = 6.1962475585937500 * 100, fy = 6.1962475585937500 * 100, cx = 3.1217816162109375 * 100, cy = 2.4584956359863281 * 100;
+	det_parameters.track_gaze = true;
+	int frame_count = 0;
+	cv::Size frameSize = cv::Size(640, 480);
+	float frameRate = 30;
+
+
+	cv::Mat frameColor = cv::Mat::zeros(frameSize, CV_8UC3);
+	PXCSenseManager* pxcSenseManager = PXCSenseManager::CreateInstance();
+	pxcSenseManager->EnableStream(PXCCapture::STREAM_TYPE_COLOR, frameSize.width, frameSize.height, frameRate);
+	pxcSenseManager->Init();
+	bool keepRunning = true;
+
+	int start_time = std::time(NULL);
+	int run_time = start_time;
+	while (keepRunning)
+	{
+		run_time = std::time(NULL) - start_time;
+
+		if (run_time < 3)
+			continue;
+		if (run_time > 6)
+			keepRunning = false;
+
+		pxcSenseManager->AcquireFrame();
+		PXCCapture::Sample *sample = pxcSenseManager->QuerySample();
+		frameColor = PXCImage2CVMat(sample->color, PXCImage::PIXEL_FORMAT_RGB24);
+		cv::Mat_<float> frameDisplay;
+
+
+		pxcSenseManager->ReleaseFrame();
+		cv::Mat_<uchar> grayscale_image;
+
+		if (frameColor.channels() == 3)
+		{
+			cv::cvtColor(frameColor, grayscale_image, CV_BGR2GRAY);
+		}
+		else
+		{
+			grayscale_image = frameColor.clone();
+		}
+		bool detection_success = LandmarkDetector::DetectLandmarksInVideo(grayscale_image, cv::Mat_<float>(), clnf_model, det_parameters);
+
+		double detection_certainty = clnf_model.detection_certainty;
+
+		// Gaze tracking, absolute gaze direction, eyeball center
+		cv::Point3f gazeDirection0(0, 0, -1);
+		cv::Point3f gazeDirection1(0, 0, -1);
+		cv::Point3f left_eyeball_center(0, 0, -1);
+		cv::Point3f right_eyeball_center(0, 0, -1);
+
+		if (det_parameters.track_gaze && detection_success && clnf_model.eye_model)
+		{
+			FaceAnalysis::EstimateGaze(left_eyeball_center, clnf_model, gazeDirection0, fx, fy, cx, cy, true); //Left Eye
+			FaceAnalysis::EstimateGaze(right_eyeball_center, clnf_model, gazeDirection1, fx, fy, cx, cy, false); //Right Eye
+		}
+		frame_count++;
+		//visualise_tracking(frameColor, frameDisplay, clnf_model, det_parameters, gazeDirection0, gazeDirection1, frame_count, fx, fy, cx, cy);
+		displaywidget_->Calibration(gazeDirection0, gazeDirection1, left_eyeball_center,right_eyeball_center,type);
+
+	}
+
+	
+	pxcSenseManager->Release();
+	cv::destroyWindow("estimate");
+}
+
+void OpenFace::Cali(int argc, char **argv)
+{
+	draw_point(cv::Point2d(960, 540));
+	Calibration(argc, argv,0);
+	draw_point(cv::Point2d(960, 50));
+	Calibration(argc, argv, 1);
+	draw_point(cv::Point2d(960, 1040));
+	Calibration(argc, argv, 2);
+	draw_point(cv::Point2d(50, 540));
+	Calibration(argc, argv, 3);
+	draw_point(cv::Point2d(1870, 540));
+	Calibration(argc, argv, 4);
+
+	displaywidget_->UpdateCalibration();
 }

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 
+
 // OpenCV includes
 #include <opencv2/videoio/videoio.hpp>  // Video write
 #include <opencv2/videoio/videoio_c.h>  // Video write
@@ -26,6 +27,7 @@
 #include "util_render.h"
 #include <conio.h>
 
+
 using namespace std;
 
 class OpenFace 
@@ -39,6 +41,7 @@ public:
 	void Init(int argc, char **argv);
 	void Debug();
 	int img_track(int argc, char **argv);
+	void Cali(int argc, char **argv);
 
 private:
 	static void printErrorAndAbort(const std::string & error);
@@ -54,6 +57,8 @@ private:
 	void InitOpenface(int argc, char **argv);
 	cv::Mat PXCImage2CVMat(PXCImage *pxcImage, PXCImage::PixelFormat format);
 
+	
+	void Calibration(int argc, char **argv, int type);
 private:
 	// Some globals for tracking timing information for visualisation
 	double fps_tracker = -1.0;
